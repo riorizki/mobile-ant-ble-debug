@@ -7,17 +7,14 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../packages/quest_ble/quest_ble.dart';
 
-part 'ble_cubit.freezed.dart';
-part 'ble_state.dart';
+part 'second_ble_cubit.freezed.dart';
+part 'second_ble_state.dart';
 
-const String kServiceUuid = '0000ffe0-0000-1000-8000-00805f9b34fb';
-const String kCharacteristicUuid = '0000ffe1-0000-1000-8000-00805f9b34fb';
-
-class BleCubit extends Cubit<BleState> {
-  BleCubit({
+class SecondBleCubit extends Cubit<SecondBleState> {
+  SecondBleCubit({
     required QuestBle questBle,
   })  : _questBle = questBle,
-        super(const BleState()) {
+        super(const SecondBleState()) {
     // Bluetooth state
     _bluetoothStateSubscription = _questBle.bluetoothStateController.listen(
       (value) {
@@ -40,6 +37,9 @@ class BleCubit extends Cubit<BleState> {
   StreamSubscription<BluetoothDeviceState>? _deviceStateSubscription;
   StreamSubscription<List<int>>? _characteristicSubscription;
 
+  String kServiceUuid = '0000ffe0-0000-1000-8000-00805f9b34fb';
+  String kCharacteristicUuid = '0000ffe1-0000-1000-8000-00805f9b34fb';
+
   @override
   Future<void> close() async {
     await _bluetoothStateSubscription.cancel();
@@ -57,14 +57,14 @@ class BleCubit extends Cubit<BleState> {
 
   void _onScanStateChange(bool value) {
     emit(state.copyWith(
-      action: BleAction.onScanStateChange,
+      action: SecondBleAction.onScanStateChange,
       isScanning: value,
     ));
   }
 
   void _onBluetoothStateChange(BluetoothState value) {
     emit(state.copyWith(
-      action: BleAction.onBluetoothStateChange,
+      action: SecondBleAction.onBluetoothStateChange,
       bluetoothState: value,
     ));
   }
@@ -72,17 +72,17 @@ class BleCubit extends Cubit<BleState> {
   Future<void> checkBluetoothIsOn() async {
     try {
       emit(state.copyWith(
-        status: BleStatus.loading,
-        action: BleAction.checkBluetoothIsOn,
+        status: SecondBleStatus.loading,
+        action: SecondBleAction.checkBluetoothIsOn,
       ));
       final isOn = await _questBle.isBluetoothOn();
       _log('[checkBluetoothIsOn] bluetooth is on: $isOn');
       emit(state.copyWith(
-        status: BleStatus.success,
+        status: SecondBleStatus.success,
       ));
     } catch (e) {
       emit(state.copyWith(
-        status: BleStatus.failure,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -91,14 +91,14 @@ class BleCubit extends Cubit<BleState> {
   Future<void> startScan() async {
     try {
       emit(state.copyWith(
-        action: BleAction.startScan,
-        status: BleStatus.loading,
+        action: SecondBleAction.startScan,
+        status: SecondBleStatus.loading,
       ));
 
       if (state.bluetoothState != BluetoothState.on) {
         emit(state.copyWith(
-          action: BleAction.startScan,
-          status: BleStatus.failure,
+          action: SecondBleAction.startScan,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please turn on your bluetooth'
               ' before using this application',
         ));
@@ -121,22 +121,22 @@ class BleCubit extends Cubit<BleState> {
         onDone: () {
           _log('[scanResult] scan finished');
           emit(state.copyWith(
-            action: BleAction.startScan,
-            status: BleStatus.success,
+            action: SecondBleAction.startScan,
+            status: SecondBleStatus.success,
           ));
         },
         onError: (e, s) {
           emit(state.copyWith(
-            action: BleAction.startScan,
-            status: BleStatus.failure,
+            action: SecondBleAction.startScan,
+            status: SecondBleStatus.failure,
             errorMessage: e.toString(),
           ));
         },
       );
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.startScan,
-        status: BleStatus.failure,
+        action: SecondBleAction.startScan,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -145,14 +145,14 @@ class BleCubit extends Cubit<BleState> {
   Future<void> startScanWithDeviceName(String deviceName) async {
     try {
       emit(state.copyWith(
-        action: BleAction.startScan,
-        status: BleStatus.loading,
+        action: SecondBleAction.startScan,
+        status: SecondBleStatus.loading,
       ));
 
       if (state.bluetoothState != BluetoothState.on) {
         emit(state.copyWith(
-          action: BleAction.startScan,
-          status: BleStatus.failure,
+          action: SecondBleAction.startScan,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please turn on your bluetooth'
               ' before using this application',
         ));
@@ -183,30 +183,30 @@ class BleCubit extends Cubit<BleState> {
           _log('[scanResult] scan finished');
           if (deviceFound) {
             emit(state.copyWith(
-              action: BleAction.startScan,
-              status: BleStatus.success,
+              action: SecondBleAction.startScan,
+              status: SecondBleStatus.success,
             ));
             return;
           }
 
           emit(state.copyWith(
-            action: BleAction.startScan,
-            status: BleStatus.failure,
+            action: SecondBleAction.startScan,
+            status: SecondBleStatus.failure,
             errorMessage: 'Bike out of range',
           ));
         },
         onError: (e, s) {
           emit(state.copyWith(
-            action: BleAction.startScan,
-            status: BleStatus.failure,
+            action: SecondBleAction.startScan,
+            status: SecondBleStatus.failure,
             errorMessage: e.toString(),
           ));
         },
       );
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.startScan,
-        status: BleStatus.failure,
+        action: SecondBleAction.startScan,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -218,14 +218,14 @@ class BleCubit extends Cubit<BleState> {
   }) async {
     try {
       emit(state.copyWith(
-        action: BleAction.startScan,
-        status: BleStatus.loading,
+        action: SecondBleAction.startScan,
+        status: SecondBleStatus.loading,
       ));
 
       if (state.bluetoothState != BluetoothState.on) {
         emit(state.copyWith(
-          action: BleAction.startScan,
-          status: BleStatus.failure,
+          action: SecondBleAction.startScan,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please turn on your bluetooth'
               ' before using this application',
         ));
@@ -258,30 +258,30 @@ class BleCubit extends Cubit<BleState> {
 
           if (deviceFound) {
             emit(state.copyWith(
-              action: BleAction.startScan,
-              status: BleStatus.success,
+              action: SecondBleAction.startScan,
+              status: SecondBleStatus.success,
             ));
             return;
           }
 
           emit(state.copyWith(
-            action: BleAction.startScan,
-            status: BleStatus.failure,
+            action: SecondBleAction.startScan,
+            status: SecondBleStatus.failure,
             errorMessage: 'Bike out of range',
           ));
         },
         onError: (e, s) {
           emit(state.copyWith(
-            action: BleAction.startScan,
-            status: BleStatus.failure,
+            action: SecondBleAction.startScan,
+            status: SecondBleStatus.failure,
             errorMessage: e.toString(),
           ));
         },
       );
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.startScan,
-        status: BleStatus.failure,
+        action: SecondBleAction.startScan,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -290,14 +290,14 @@ class BleCubit extends Cubit<BleState> {
   Future<void> stopScan() async {
     try {
       emit(state.copyWith(
-        action: BleAction.stopScan,
-        status: BleStatus.loading,
+        action: SecondBleAction.stopScan,
+        status: SecondBleStatus.loading,
       ));
 
       if (state.bluetoothState != BluetoothState.on) {
         emit(state.copyWith(
-          action: BleAction.stopScan,
-          status: BleStatus.failure,
+          action: SecondBleAction.stopScan,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please turn on your bluetooth'
               ' before using this application',
         ));
@@ -307,13 +307,13 @@ class BleCubit extends Cubit<BleState> {
       await _questBle.stopScan();
 
       emit(state.copyWith(
-        action: BleAction.stopScan,
-        status: BleStatus.success,
+        action: SecondBleAction.stopScan,
+        status: SecondBleStatus.success,
       ));
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.stopScan,
-        status: BleStatus.failure,
+        action: SecondBleAction.stopScan,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -322,14 +322,14 @@ class BleCubit extends Cubit<BleState> {
   Future<void> getConnectedDevices() async {
     try {
       emit(state.copyWith(
-        action: BleAction.getConnectedDevices,
-        status: BleStatus.loading,
+        action: SecondBleAction.getConnectedDevices,
+        status: SecondBleStatus.loading,
       ));
       final isOn = await _questBle.isBluetoothOn();
       // if (state.bluetoothState != BluetoothState.on) {
       //   emit(state.copyWith(
-      //     action: BleAction.getConnectedDevices,
-      //     status: BleStatus.failure,
+      //     action: SecondBleAction.getConnectedDevices,
+      //     status: SecondBleStatus.failure,
       //     errorMessage: 'Please turn on your bluetooth'
       //         ' before using this application',
       //   ));
@@ -338,8 +338,8 @@ class BleCubit extends Cubit<BleState> {
 
       if (isOn == false) {
         emit(state.copyWith(
-          action: BleAction.getConnectedDevices,
-          status: BleStatus.failure,
+          action: SecondBleAction.getConnectedDevices,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please turn on your bluetooth'
               ' before using this application',
         ));
@@ -355,13 +355,13 @@ class BleCubit extends Cubit<BleState> {
       }
 
       emit(state.copyWith(
-        action: BleAction.getConnectedDevices,
-        status: BleStatus.success,
+        action: SecondBleAction.getConnectedDevices,
+        status: SecondBleStatus.success,
       ));
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.getConnectedDevices,
-        status: BleStatus.failure,
+        action: SecondBleAction.getConnectedDevices,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -370,14 +370,14 @@ class BleCubit extends Cubit<BleState> {
   Future<void> connectToDevice(String name) async {
     try {
       emit(state.copyWith(
-        action: BleAction.connect,
-        status: BleStatus.loading,
+        action: SecondBleAction.connect,
+        status: SecondBleStatus.loading,
       ));
 
       if (state.bluetoothState != BluetoothState.on) {
         emit(state.copyWith(
-          action: BleAction.connect,
-          status: BleStatus.failure,
+          action: SecondBleAction.connect,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please turn on your bluetooth'
               ' before using this application',
         ));
@@ -387,8 +387,8 @@ class BleCubit extends Cubit<BleState> {
       final device = _getBluetoothDevice(name);
       if (device == null) {
         emit(state.copyWith(
-          action: BleAction.connect,
-          status: BleStatus.failure,
+          action: SecondBleAction.connect,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please select vehicle',
         ));
         return;
@@ -400,13 +400,13 @@ class BleCubit extends Cubit<BleState> {
       );
 
       emit(state.copyWith(
-        action: BleAction.connect,
-        status: BleStatus.success,
+        action: SecondBleAction.connect,
+        status: SecondBleStatus.success,
       ));
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.connect,
-        status: BleStatus.failure,
+        action: SecondBleAction.connect,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -415,14 +415,14 @@ class BleCubit extends Cubit<BleState> {
   Future<void> disconnectFromDevice(String name) async {
     try {
       emit(state.copyWith(
-        action: BleAction.disconnect,
-        status: BleStatus.loading,
+        action: SecondBleAction.disconnect,
+        status: SecondBleStatus.loading,
       ));
 
       if (state.bluetoothState != BluetoothState.on) {
         emit(state.copyWith(
-          action: BleAction.disconnect,
-          status: BleStatus.failure,
+          action: SecondBleAction.disconnect,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please turn on your bluetooth'
               ' before using this application',
         ));
@@ -432,8 +432,8 @@ class BleCubit extends Cubit<BleState> {
       final device = _getBluetoothDevice(name);
       if (device == null) {
         emit(state.copyWith(
-          action: BleAction.disconnect,
-          status: BleStatus.failure,
+          action: SecondBleAction.disconnect,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please scan & connect before '
               'disconnecting from device',
         ));
@@ -444,16 +444,16 @@ class BleCubit extends Cubit<BleState> {
       await _characteristicSubscription?.cancel();
       await _questBle.disconnect(device: device);
       emit(state.copyWith(
-        action: BleAction.disconnect,
-        status: BleStatus.success,
+        action: SecondBleAction.disconnect,
+        status: SecondBleStatus.success,
         bluetoothDevice: null,
         rawData: [],
         bluetoothDeviceState: BluetoothDeviceState.disconnected,
       ));
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.disconnect,
-        status: BleStatus.failure,
+        action: SecondBleAction.disconnect,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -462,15 +462,15 @@ class BleCubit extends Cubit<BleState> {
   Future<void> streamBluetoothDeviceState(String name) async {
     try {
       emit(state.copyWith(
-        action: BleAction.getDeviceStateChange,
-        status: BleStatus.loading,
+        action: SecondBleAction.getDeviceStateChange,
+        status: SecondBleStatus.loading,
       ));
 
       final device = _getBluetoothDevice(name);
       if (device == null) {
         emit(state.copyWith(
-          action: BleAction.getDeviceStateChange,
-          status: BleStatus.failure,
+          action: SecondBleAction.getDeviceStateChange,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please connect before stream to device state',
         ));
         return;
@@ -482,19 +482,19 @@ class BleCubit extends Cubit<BleState> {
         (event) {
           emit(state.copyWith(
             bluetoothDeviceState: event,
-            action: BleAction.onDeviceStateChange,
+            action: SecondBleAction.onDeviceStateChange,
           ));
         },
       );
 
       emit(state.copyWith(
-        action: BleAction.getDeviceStateChange,
-        status: BleStatus.success,
+        action: SecondBleAction.getDeviceStateChange,
+        status: SecondBleStatus.success,
       ));
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.getDeviceStateChange,
-        status: BleStatus.failure,
+        action: SecondBleAction.getDeviceStateChange,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -503,15 +503,15 @@ class BleCubit extends Cubit<BleState> {
   Future<void> discoverService() async {
     try {
       emit(state.copyWith(
-        action: BleAction.discoverService,
-        status: BleStatus.loading,
+        action: SecondBleAction.discoverService,
+        status: SecondBleStatus.loading,
       ));
 
       final device = state.bluetoothDevice;
       if (device == null) {
         emit(state.copyWith(
-          action: BleAction.discoverService,
-          status: BleStatus.failure,
+          action: SecondBleAction.discoverService,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please connect before discover service',
         ));
         return;
@@ -523,7 +523,7 @@ class BleCubit extends Cubit<BleState> {
           for (var characteristic in service.characteristics) {
             if (characteristic.uuid == Guid(kCharacteristicUuid)) {
               emit(state.copyWith(
-                action: BleAction.discoverService,
+                action: SecondBleAction.discoverService,
                 bluetoothCharacteristic: characteristic,
               ));
               _log('[discoverService] characteristic found');
@@ -533,13 +533,13 @@ class BleCubit extends Cubit<BleState> {
       }
 
       emit(state.copyWith(
-        action: BleAction.discoverService,
-        status: BleStatus.success,
+        action: SecondBleAction.discoverService,
+        status: SecondBleStatus.success,
       ));
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.discoverService,
-        status: BleStatus.failure,
+        action: SecondBleAction.discoverService,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -548,15 +548,15 @@ class BleCubit extends Cubit<BleState> {
   Future<void> streamBluetoothNotification() async {
     try {
       emit(state.copyWith(
-        action: BleAction.streamBluetoothNotification,
-        status: BleStatus.loading,
+        action: SecondBleAction.streamBluetoothNotification,
+        status: SecondBleStatus.loading,
       ));
 
       final device = state.bluetoothDevice;
       if (device == null) {
         emit(state.copyWith(
-          action: BleAction.streamBluetoothNotification,
-          status: BleStatus.failure,
+          action: SecondBleAction.streamBluetoothNotification,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please connect before stream to bluetooth notifcation',
         ));
         return;
@@ -565,8 +565,8 @@ class BleCubit extends Cubit<BleState> {
       final characteristic = state.bluetoothCharacteristic;
       if (characteristic == null) {
         emit(state.copyWith(
-          action: BleAction.streamBluetoothNotification,
-          status: BleStatus.failure,
+          action: SecondBleAction.streamBluetoothNotification,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please connect before stream to bluetooth notifcation',
         ));
         return;
@@ -582,7 +582,7 @@ class BleCubit extends Cubit<BleState> {
         (event) {
           if (event.isNotEmpty) {
             emit(state.copyWith(
-              action: BleAction.onCharacteristicChange,
+              action: SecondBleAction.onCharacteristicChange,
               rawData: event,
             ));
           }
@@ -590,13 +590,13 @@ class BleCubit extends Cubit<BleState> {
       );
 
       emit(state.copyWith(
-        action: BleAction.streamBluetoothNotification,
-        status: BleStatus.success,
+        action: SecondBleAction.streamBluetoothNotification,
+        status: SecondBleStatus.success,
       ));
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.streamBluetoothNotification,
-        status: BleStatus.failure,
+        action: SecondBleAction.streamBluetoothNotification,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -605,15 +605,15 @@ class BleCubit extends Cubit<BleState> {
   Future<void> write(List<int> payload) async {
     try {
       emit(state.copyWith(
-        action: BleAction.write,
-        status: BleStatus.loading,
+        action: SecondBleAction.write,
+        status: SecondBleStatus.loading,
       ));
 
       final device = state.bluetoothDevice;
       if (device == null) {
         emit(state.copyWith(
-          action: BleAction.write,
-          status: BleStatus.failure,
+          action: SecondBleAction.write,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please connect before stream to bluetooth notifcation',
         ));
         return;
@@ -622,8 +622,8 @@ class BleCubit extends Cubit<BleState> {
       final characteristic = state.bluetoothCharacteristic;
       if (characteristic == null) {
         emit(state.copyWith(
-          action: BleAction.write,
-          status: BleStatus.failure,
+          action: SecondBleAction.write,
+          status: SecondBleStatus.failure,
           errorMessage: 'Please connect before stream to bluetooth notifcation',
         ));
         return;
@@ -632,13 +632,13 @@ class BleCubit extends Cubit<BleState> {
       await characteristic.write(payload);
 
       emit(state.copyWith(
-        action: BleAction.write,
-        status: BleStatus.success,
+        action: SecondBleAction.write,
+        status: SecondBleStatus.success,
       ));
     } catch (e) {
       emit(state.copyWith(
-        action: BleAction.write,
-        status: BleStatus.failure,
+        action: SecondBleAction.write,
+        status: SecondBleStatus.failure,
         errorMessage: e.toString(),
       ));
     }

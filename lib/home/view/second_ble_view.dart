@@ -4,75 +4,25 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../../app/extensions/modal.dart';
-import '../../packages/quest_ble/quest_ble.dart';
 import '../bloc/ble/ble_cubit.dart';
 import '../bloc/second_ble/second_ble_cubit.dart';
-import 'second_ble_view.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => BleCubit(
-            questBle: context.read<QuestBle>(),
-          )..checkBluetoothIsOn(),
-        ),
-        BlocProvider(
-          create: (context) => SecondBleCubit(
-            questBle: context.read<QuestBle>(),
-          )..checkBluetoothIsOn(),
-        ),
-      ],
-      child: const HomeView(),
-    );
-  }
-}
-
-class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+class SecondBleView extends StatefulWidget {
+  const SecondBleView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'ANT-BMS',
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: const [
-              FirstBleView(),
-              SecondBleView(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  State<SecondBleView> createState() => _SecondBleViewState();
 }
 
-class FirstBleView extends StatefulWidget {
-  const FirstBleView({super.key});
-
-  @override
-  State<FirstBleView> createState() => _FirstBleViewState();
-}
-
-class _FirstBleViewState extends State<FirstBleView> {
+class _SecondBleViewState extends State<SecondBleView> {
   final _formKey = GlobalKey<FormState>();
   final _textController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _textController.text = 'ANT-BLE20PHUB-0013';
-    context.read<BleCubit>().getConnectedDevices();
+    _textController.text = 'ANT-BLE20PHUB-0012';
+    context.read<SecondBleCubit>().getConnectedDevices();
   }
 
   @override
@@ -86,7 +36,7 @@ class _FirstBleViewState extends State<FirstBleView> {
 
   void _connect() {
     if (_formKey.currentState!.validate()) {
-      final cubit = BlocProvider.of<BleCubit>(context);
+      final cubit = BlocProvider.of<SecondBleCubit>(context);
       cubit.startScanWithProperties(
         deviceName: _textController.text,
         services: [Guid(kServiceUuid)],
@@ -96,7 +46,7 @@ class _FirstBleViewState extends State<FirstBleView> {
 
   void _disconnect() {
     if (_formKey.currentState!.validate()) {
-      final cubit = BlocProvider.of<BleCubit>(context);
+      final cubit = BlocProvider.of<SecondBleCubit>(context);
       cubit.disconnectFromDevice(_textController.text);
     }
   }
@@ -105,68 +55,68 @@ class _FirstBleViewState extends State<FirstBleView> {
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
-        BlocListener<BleCubit, BleState>(
+        BlocListener<SecondBleCubit, SecondBleState>(
           listener: (context, state) {
             final action = state.action;
             final status = state.status;
 
             switch (status) {
-              case BleStatus.loading:
-                if (action == BleAction.onBluetoothStateChange) return;
-                if (action == BleAction.onScanStateChange) return;
-                if (action == BleAction.onDeviceStateChange) return;
-                if (action == BleAction.onCharacteristicChange) return;
+              case SecondBleStatus.loading:
+                if (action == SecondBleAction.onBluetoothStateChange) return;
+                if (action == SecondBleAction.onScanStateChange) return;
+                if (action == SecondBleAction.onDeviceStateChange) return;
+                if (action == SecondBleAction.onCharacteristicChange) return;
 
                 context.showLoading();
                 break;
-              case BleStatus.success:
-                if (action == BleAction.onBluetoothStateChange) return;
-                if (action == BleAction.onScanStateChange) return;
-                if (action == BleAction.onDeviceStateChange) return;
-                if (action == BleAction.onCharacteristicChange) return;
+              case SecondBleStatus.success:
+                if (action == SecondBleAction.onBluetoothStateChange) return;
+                if (action == SecondBleAction.onScanStateChange) return;
+                if (action == SecondBleAction.onDeviceStateChange) return;
+                if (action == SecondBleAction.onCharacteristicChange) return;
 
-                if (action == BleAction.getConnectedDevices) {}
+                if (action == SecondBleAction.getConnectedDevices) {}
 
-                if (action == BleAction.startScan) {
+                if (action == SecondBleAction.startScan) {
                   context.showSnackbar('Success assign device');
 
-                  final cubit = BlocProvider.of<BleCubit>(context);
+                  final cubit = BlocProvider.of<SecondBleCubit>(context);
                   cubit.connectToDevice(_textController.text);
                 }
 
-                if (action == BleAction.connect) {
-                  final cubit = BlocProvider.of<BleCubit>(context);
+                if (action == SecondBleAction.connect) {
+                  final cubit = BlocProvider.of<SecondBleCubit>(context);
                   cubit.streamBluetoothDeviceState(_textController.text);
                 }
 
-                if (action == BleAction.getDeviceStateChange) {
+                if (action == SecondBleAction.getDeviceStateChange) {
                   _log('gonna discover service');
-                  final cubit = BlocProvider.of<BleCubit>(context);
+                  final cubit = BlocProvider.of<SecondBleCubit>(context);
                   cubit.discoverService();
                 }
 
-                if (action == BleAction.discoverService) {
+                if (action == SecondBleAction.discoverService) {
                   _log('gonna stream notification');
-                  final cubit = BlocProvider.of<BleCubit>(context);
+                  final cubit = BlocProvider.of<SecondBleCubit>(context);
                   cubit.streamBluetoothNotification();
                 }
 
                 context.closeLoading();
                 break;
-              case BleStatus.failure:
-                if (action == BleAction.onBluetoothStateChange) return;
-                if (action == BleAction.onScanStateChange) return;
-                if (action == BleAction.onDeviceStateChange) return;
-                if (action == BleAction.onCharacteristicChange) return;
+              case SecondBleStatus.failure:
+                if (action == SecondBleAction.onBluetoothStateChange) return;
+                if (action == SecondBleAction.onScanStateChange) return;
+                if (action == SecondBleAction.onDeviceStateChange) return;
+                if (action == SecondBleAction.onCharacteristicChange) return;
 
                 context.closeLoading();
                 context.showSnackbar(state.errorMessage);
                 break;
               default:
-                if (action == BleAction.onBluetoothStateChange) return;
-                if (action == BleAction.onScanStateChange) return;
-                if (action == BleAction.onDeviceStateChange) return;
-                if (action == BleAction.onCharacteristicChange) return;
+                if (action == SecondBleAction.onBluetoothStateChange) return;
+                if (action == SecondBleAction.onScanStateChange) return;
+                if (action == SecondBleAction.onDeviceStateChange) return;
+                if (action == SecondBleAction.onCharacteristicChange) return;
 
                 context.closeLoading();
             }
@@ -187,7 +137,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        BlocBuilder<BleCubit, BleState>(
+                        BlocBuilder<SecondBleCubit, SecondBleState>(
                           builder: (context, state) {
                             return Expanded(
                               child: TextFormField(
@@ -209,7 +159,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                           },
                         ),
                         const SizedBox(width: 24),
-                        BlocBuilder<BleCubit, BleState>(
+                        BlocBuilder<SecondBleCubit, SecondBleState>(
                           builder: (context, state) {
                             final bluetoothOn =
                                 state.bluetoothState == BluetoothState.on;
@@ -240,7 +190,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: SizedBox(
                       width: double.infinity,
-                      child: BlocBuilder<BleCubit, BleState>(
+                      child: BlocBuilder<SecondBleCubit, SecondBleState>(
                         builder: (context, state) {
                           final bluetoothOn =
                               state.bluetoothState == BluetoothState.on;
@@ -259,7 +209,8 @@ class _FirstBleViewState extends State<FirstBleView> {
                             onPressed: canSend
                                 ? () {
                                     final cubit =
-                                        BlocProvider.of<BleCubit>(context);
+                                        BlocProvider.of<SecondBleCubit>(
+                                            context);
 
                                     cubit.write(
                                       [0xDB, 0xDB, 0x00, 0x00, 0x00, 0x00],
@@ -278,7 +229,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                   // ! Label Received
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: BlocBuilder<BleCubit, BleState>(
+                    child: BlocBuilder<SecondBleCubit, SecondBleState>(
                       builder: (context, state) {
                         return SizedBox(
                           width: double.infinity,
@@ -289,7 +240,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                   ),
                   const _Spacing(),
                   // ! Discharge ON/OFF
-                  BlocBuilder<BleCubit, BleState>(
+                  BlocBuilder<SecondBleCubit, SecondBleState>(
                     builder: (context, state) {
                       final bluetoothOn =
                           state.bluetoothState == BluetoothState.on;
@@ -310,7 +261,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                         onFirstButtonPressed: canSend
                             ? () {
                                 final cubit =
-                                    BlocProvider.of<BleCubit>(context);
+                                    BlocProvider.of<SecondBleCubit>(context);
 
                                 cubit.write(
                                   [
@@ -331,7 +282,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                         onSecondButtonPressed: canSend
                             ? () {
                                 final cubit =
-                                    BlocProvider.of<BleCubit>(context);
+                                    BlocProvider.of<SecondBleCubit>(context);
 
                                 cubit.write(
                                   [
@@ -354,7 +305,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                   ),
                   const _Spacing(),
                   // ! Charge
-                  BlocBuilder<BleCubit, BleState>(
+                  BlocBuilder<SecondBleCubit, SecondBleState>(
                     builder: (context, state) {
                       final bluetoothOn =
                           state.bluetoothState == BluetoothState.on;
@@ -375,7 +326,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                         onFirstButtonPressed: canSend
                             ? () {
                                 final cubit =
-                                    BlocProvider.of<BleCubit>(context);
+                                    BlocProvider.of<SecondBleCubit>(context);
 
                                 cubit.write(
                                   [
@@ -396,7 +347,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                         onSecondButtonPressed: canSend
                             ? () {
                                 final cubit =
-                                    BlocProvider.of<BleCubit>(context);
+                                    BlocProvider.of<SecondBleCubit>(context);
 
                                 cubit.write(
                                   [
@@ -419,7 +370,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                   ),
                   const _Spacing(),
                   // ! Balancing
-                  BlocBuilder<BleCubit, BleState>(
+                  BlocBuilder<SecondBleCubit, SecondBleState>(
                     builder: (context, state) {
                       final bluetoothOn =
                           state.bluetoothState == BluetoothState.on;
@@ -440,7 +391,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                         onFirstButtonPressed: canSend
                             ? () {
                                 final cubit =
-                                    BlocProvider.of<BleCubit>(context);
+                                    BlocProvider.of<SecondBleCubit>(context);
 
                                 cubit.write(
                                   [],
@@ -450,7 +401,7 @@ class _FirstBleViewState extends State<FirstBleView> {
                         onSecondButtonPressed: canSend
                             ? () {
                                 final cubit =
-                                    BlocProvider.of<BleCubit>(context);
+                                    BlocProvider.of<SecondBleCubit>(context);
 
                                 cubit.write(
                                   [],
